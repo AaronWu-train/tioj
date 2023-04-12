@@ -1,7 +1,7 @@
 FROM ruby:3.1.2
 
-RUN apt update
-RUN apt install -y netcat rsync nodejs redis-server
+RUN apt-get update
+RUN apt-get install -y netcat rsync nodejs redis-server
 
 ARG MYSQL_ROOT_PASSWORD
 ENV PASSWORD=$MYSQL_ROOT_PASSWORD
@@ -10,6 +10,7 @@ ENV TIOJ_KEY=$TIOJ_KEY
 
 COPY Gemfile Gemfile.lock /tioj/
 WORKDIR /tioj
+RUN gem install bundler:2.3.17
 RUN MAKEFLAGS='-j2' bundle install
 
 COPY . /tioj

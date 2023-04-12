@@ -31,7 +31,7 @@ services:
     networks:
       - app
     ports:
-      - "4000:4000"
+            - "0.0.0.0:4000:4000"
     logging: *default-logging
   db:
     image: mysql:8.0
