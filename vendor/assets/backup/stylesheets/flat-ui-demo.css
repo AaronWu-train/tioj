@@ -1,6 +1,6 @@
 .dropdown-arrow-inverse {
-  border-bottom-color: #aa9d81 !important;
-  border-top-color: #aa9d81 !important;
+  border-bottom-color: #34495e !important;
+  border-top-color: #34495e !important;
 }
 .container {
   width: 970px !important;
@@ -242,7 +242,7 @@
   -webkit-font-smoothing: antialiased;
 }
 .demo-browser-content {
-  background-color: #aa9d81;
+  background-color: #34495e;
   overflow: hidden;
   padding: 21px 0 0 20px;
   border-radius: 0 0 6px;
