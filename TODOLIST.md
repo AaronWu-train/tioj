@@ -12,7 +12,6 @@
     - don't appear in rank, can only submit to contests
 
 
-- [ ] Revisit all JSON endpoints
 - [ ] Cache computation-intensive results (AC count of problem (Redis) / user (DB))
 - [ ] Problem import & export
     - [ ] Native format
