@@ -17,7 +17,6 @@
 #  updated_at             :datetime
 #  nickname               :string(255)
 #  avatar                 :string(255)
-#  admin                  :boolean          default(FALSE)
 #  username               :string(255)
 #  motto                  :string(255)
 #  school                 :string(255)
@@ -25,15 +24,16 @@
 #  name                   :string(255)
 #  last_submit_time       :datetime
 #  last_compiler_id       :bigint
-#  type                   :string(255)      default("User"), not null
+#  user_type              :integer          default("normal_user")
 #
 # Indexes
 #
-#  index_users_on_last_compiler_id               (last_compiler_id)
-#  index_users_on_type_and_email                 (type,email) UNIQUE
-#  index_users_on_type_and_nickname              (type,nickname) UNIQUE
-#  index_users_on_type_and_reset_password_token  (type,reset_password_token) UNIQUE
-#  index_users_on_type_and_username              (type,username) UNIQUE
+#  index_users_on_email                 (email) UNIQUE
+#  index_users_on_last_compiler_id      (last_compiler_id)
+#  index_users_on_nickname              (nickname) UNIQUE
+#  index_users_on_reset_password_token  (reset_password_token) UNIQUE
+#  index_users_on_user_type             (user_type)
+#  index_users_on_username              (username) UNIQUE
 #
 # Foreign Keys
 #
@@ -41,9 +41,8 @@
 #
 
 require 'file_size_validator'
-
-class UserBase < ApplicationRecord
-  self.table_name = "users"
+class User < ApplicationRecord
+  enum :user_type, {admin: 10, normal_user: 5, contest_only: 0}
 
   has_many :submissions, :dependent => :destroy
   has_many :posts, :dependent => :destroy
@@ -74,9 +73,7 @@ class UserBase < ApplicationRecord
       where(conditions).first
     end
   end
-end
 
-class User < UserBase
   validates_presence_of :username, :nickname
   validates :username,
     :uniqueness => {:case_sensitive => false},
@@ -94,7 +91,4 @@ class User < UserBase
 
   extend FriendlyId
   friendly_id :username
-end
-
-class ContestUser < UserBase
 end
