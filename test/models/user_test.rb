@@ -24,7 +24,7 @@
 #  name                   :string(255)
 #  last_submit_time       :datetime
 #  last_compiler_id       :bigint
-#  user_type              :integer          default("normal_user")
+#  user_type              :integer          default(5)
 #
 # Indexes
 #
