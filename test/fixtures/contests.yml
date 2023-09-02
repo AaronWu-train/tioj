@@ -20,7 +20,6 @@
 #  dashboard_during_contest   :boolean          default(TRUE)
 #  register_mode              :integer          default("no_register"), not null
 #  register_before            :datetime         not null
-#  default_single_contest     :boolean          default(FALSE), not null
 #
 # Indexes
 #
