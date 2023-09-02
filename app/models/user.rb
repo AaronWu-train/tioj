@@ -3,7 +3,7 @@
 # Table name: users
 #
 #  id                     :bigint           not null, primary key
-#  email                  :string(255)
+#  email                  :string(255)      default(""), not null
 #  encrypted_password     :string(255)      default(""), not null
 #  reset_password_token   :string(255)
 #  reset_password_sent_at :datetime
@@ -26,20 +26,17 @@
 #  last_submit_time       :datetime
 #  last_compiler_id       :bigint
 #  type                   :string(255)      default("User"), not null
-#  contest_id             :bigint
 #
 # Indexes
 #
-#  index_users_on_contest_id                     (contest_id)
 #  index_users_on_last_compiler_id               (last_compiler_id)
 #  index_users_on_type_and_email                 (type,email) UNIQUE
 #  index_users_on_type_and_nickname              (type,nickname) UNIQUE
 #  index_users_on_type_and_reset_password_token  (type,reset_password_token) UNIQUE
-#  index_users_on_type_and_username              (type,username)
+#  index_users_on_type_and_username              (type,username) UNIQUE
 #
 # Foreign Keys
 #
-#  fk_rails_...  (contest_id => contests.id)
 #  fk_rails_...  (last_compiler_id => compilers.id)
 #
 
@@ -52,14 +49,11 @@ class UserBase < ApplicationRecord
   has_many :posts, :dependent => :destroy
   has_many :comments, :dependent => :destroy
 
-  has_many :contest_user_joints, :dependent => :destroy, foreign_key: :user_id
-  has_many :registered_contests, :source => :contest, :through => :contest_user_joints
-
   belongs_to :last_compiler, class_name: 'Compiler', optional: true
 
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
-  devise :database_authenticatable, :rememberable, :trackable
+  devise :database_authenticatable, :rememberable, :trackable, :validatable
   devise :registerable unless Rails.configuration.x.settings.dig(:disable_registration)
   devise :recoverable if Rails.configuration.x.settings.dig(:mail_settings) || Rails.application.credentials.mail_settings
 
@@ -82,8 +76,6 @@ class UserBase < ApplicationRecord
 end
 
 class User < UserBase
-  devise :validatable
-
   has_many :articles, :dependent => :destroy
 
   validates_presence_of :username, :nickname
@@ -106,9 +98,4 @@ class User < UserBase
 end
 
 class ContestUser < UserBase
-  belongs_to :contest
-  validates :username,
-    :uniqueness => {:case_sensitive => false, :scope => :contest_id},
-    :username_convention => true,
-    on: :create
 end
