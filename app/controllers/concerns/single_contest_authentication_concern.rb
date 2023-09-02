@@ -27,7 +27,7 @@ module SingleContestAuthenticationConcern
     super
   end
 
-  def authenticate_user!(opts = {})
+  def authenticate_user!
     if @layout == :single_contest
       return if user_signed_in?
       redirect_to sign_in_single_contest_path(@contest)
