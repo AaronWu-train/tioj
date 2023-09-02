@@ -19,3 +19,10 @@
 #
 #  fk_rails_...  (compiler_id => compilers.id)
 #
+#one:
+#  contest_id: 
+#  compiler_id: 
+#
+#two:
+#  contest_id: 
+#  compiler_id: 
