@@ -58,8 +58,7 @@ module ApplicationCable
         contest = Contest.find_by(id: contest_id.to_i)
         reject_unauthorized_connection unless contest
       else
-        session_contest_id = request.session&.dig('current_single_contest')
-        contest = session_contest_id.nil? ? nil : Contest.find_by(id: session_contest_id)
+        contest = nil
       end
 
       if contest
