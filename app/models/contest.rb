@@ -30,9 +30,7 @@ class Contest < ApplicationRecord
 
   has_many :contest_problem_joints, :dependent => :destroy
   has_many :problems, :through => :contest_problem_joints
-
-  # contest submissions will change to normal submissions once the contest is deleted
-  has_many :submissions, dependent: :nullify
+  has_many :submissions
   has_many :posts, :as => :postable, :dependent => :destroy
 
   has_many :ban_compilers, :as => :with_compiler, :dependent => :destroy
