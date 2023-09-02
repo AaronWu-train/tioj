@@ -10,12 +10,10 @@ class RegistrationsController < Devise::RegistrationsController
 
   def create
     super
-    Tempfile.create(['', '.png']) do |tmpfile|
-      Visicon.new(SecureRandom.random_bytes(16), '', 64).draw_image.write(tmpfile.path)
-      resource.avatar = tmpfile
-      logger.fatal tmpfile
-      resource.save!
-    end
+    # TODO: Implement https://github.com/mozillazg/random-avatar/blob/master/avatar/utils/visicon/__init__.py
+    # to avoid 3rd party reliance
+    resource.remote_avatar_url = "http://avatar.3sd.me/100"
+    resource.save
   end
 
   def update
