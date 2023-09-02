@@ -199,10 +199,14 @@ class ProblemsController < ApplicationController
   end
 
   def check_visibility!
-    return if effective_admin?
-    raise_not_found if @problem.visible_invisible?
-    if @problem.visible_contest?
-      raise_not_found unless @contest&.is_started? && @contest.problems.exists?(@problem)
+    unless effective_admin?
+      if @problem.visible_contest?
+        if params[:contest_id].blank? or not (@contest.problem_ids.include?(@problem.id) and @contest.is_started?)
+          redirect_back fallback_location: root_path, alert: 'Insufficient User Permissions.'
+        end
+      elsif @problem.visible_invisible?
+        redirect_back fallback_location: root_path, alert: 'Insufficient User Permissions.'
+      end
     end
   end
 
