@@ -55,8 +55,6 @@ Rails.application.routes.draw do
       resources :comments, except: [:index]
     end
 
-    resources :contest_registrations, only: [:index, :new, :create, :destroy]
-
     member do
       post 'set_contest_task'
       post 'register'
