@@ -24,9 +24,6 @@ gem 'devise'
 gem 'omniauth'
 gem 'omniauth-facebook'
 
-# Use DB session
-gem 'activerecord-session_store'
-
 # Use Redcarpet to render Markdown
 gem 'redcarpet'
 
