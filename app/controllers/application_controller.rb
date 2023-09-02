@@ -130,8 +130,7 @@ class ApplicationController < ActionController::Base
   end
 
   def set_anno
-    contest_id = @layout == :application ? nil : @contest&.id
-    @annos = Announcement.where(contest_id: contest_id).order(:id).all.to_a
+    @annos = Announcement.where(contest_id: @contest&.id).order(:id).all.to_a
   end
 
   def get_sorted_user(limit = nil)

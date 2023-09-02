@@ -57,7 +57,6 @@ Rails.application.routes.draw do
 
     member do
       post 'set_contest_task'
-      post 'register'
       get 'dashboard'
       get 'dashboard_update'
     end

@@ -19,8 +19,6 @@
 #  skip_group                 :boolean          default(FALSE)
 #  description_before_contest :text(16777215)
 #  dashboard_during_contest   :boolean          default(TRUE)
-#  register_mode              :integer          default(0), not null
-#  register_before            :datetime         not null
 #
 # Indexes
 #
@@ -29,7 +27,6 @@
 
 class Contest < ApplicationRecord
   enum :contest_type, {ioi: 0, ioi_new: 1, acm: 2}, prefix: :type
-  enum :register_mode, {no_register: 0, free_register: 1, require_approval: 2}
 
   has_many :contest_problem_joints, :dependent => :destroy
   has_many :problems, :through => :contest_problem_joints
@@ -74,9 +71,5 @@ class Contest < ApplicationRecord
 
   def is_running?
     Time.now >= start_time && end_time > Time.now
-  end
-
-  def can_register?
-    Time.now < [register_before, end_time].min
   end
 end
