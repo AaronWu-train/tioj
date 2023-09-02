@@ -14,7 +14,6 @@
  *
  *= require_tree .
  *= stub active_admin
- *= stub prism
  *= require_self
  *
  *= require tablesorter/dist/css/theme.blue
