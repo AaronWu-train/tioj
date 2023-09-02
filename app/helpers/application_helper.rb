@@ -109,14 +109,4 @@ module ApplicationHelper
   def to_us(x)
     return x.to_i * 1000000 + x.usec
   end
-
-  def notify_contest_channel(contest_id, user_id = nil)
-    return unless contest_id
-    ActionCable.server.broadcast("ranklist_update_#{contest_id}", {})
-    if user_id.nil?
-      ActionCable.server.broadcast("ranklist_update_#{contest_id}_global", {})
-    else
-      ActionCable.server.broadcast("ranklist_update_#{contest_id}_#{user_id}", {})
-    end
-  end
 end

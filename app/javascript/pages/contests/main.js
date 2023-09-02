@@ -1,5 +1,6 @@
 import { contestRanklistReorder } from './contest_ranklist_reorder';
-import consumer from "../../channels/consumer"
+import { contestDashboardRefresh } from './contest_dashboard_refresh';
+import { logger } from '@rails/actioncable';
 
 function secsToText(secs) {
   const ss = Math.floor(secs % 60);
@@ -9,6 +10,7 @@ function secsToText(secs) {
 }
 
 export function initContestRanklist(data) {
+  contestDashboardRefresh();
   contestRanklistReorder(data, -1);
 
   // Note: JavaScript integer allows usec precision timestamp up to Year 2255
@@ -41,38 +43,5 @@ export function initContestRanklist(data) {
     create: (evt, ui) => {
       // TODO: add tick marks for freeze / current
     }
-  });
-}
-
-export function initContestCable(id) {
-  let lastUpdate = 0;
-  let requestPending = false;
-  consumer.subscriptions.create({
-    channel: "RanklistUpdateChannel",
-    id: id
-  }, {
-    received: (data) => {
-      if (requestPending) return;
-      let now = Date.now();
-      if (now >= lastUpdate + 1000) {
-        $('#refresh').trigger('click');
-        lastUpdate = now;
-      } else {
-        requestPending = true;
-        setTimeout(() => {
-          $('#refresh').trigger('click');
-          lastUpdate = Date.now();
-          requestPending = false;
-        }, lastUpdate + 1000 - now);
-      }
-    },
-    connected: () => {
-      $('#status-indicator').addClass('online-indicator').removeClass('offline-indicator');
-      $('#status-text').text("Live updating");
-    },
-    disconnected: () => {
-      $('#status-indicator').removeClass('online-indicator').addClass('offline-indicator');
-      $('#status-text').text("Offline");
-    },
   });
 }
