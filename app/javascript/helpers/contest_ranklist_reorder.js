@@ -56,22 +56,15 @@ function ioiRowSummary(user_id, user_state) {
   return [-user_state.score];
 }
 
-import * as bounds from 'binary-search-bounds';
-
-function reorderTableInternal(data, timestamp, initUserState, cellText, rowSummary) {
+function reorderTableInternal(data, initUserState, cellText, rowSummary) {
   if (!data.participants) return;
   let compare_keys = {};
-  let getValue = timestamp === -1 ? (
-    (value) => value ? value[value.length - 1] : value
-  ) : (
-    (value) => value ? value[bounds.le(value, null, (x, y) => x.timestamp > timestamp ? 1 : -1)] : value
-  );
   for (const user_id of data.participants) {
     let user_state = {...initUserState};
     for (const prob_id of data.tasks) {
       let key = user_id + '_' + prob_id;
       let value = data.result[key];
-      let current = getValue(value);
+      let current = value ? value[value.length - 1] : value;
       $('#cell_item_' + key).html(cellText(current, user_state));
     }
     compare_keys['row_user_' + user_id] = rowSummary(user_id, user_state);
@@ -103,11 +96,10 @@ function reorderTableInternal(data, timestamp, initUserState, cellText, rowSumma
   }
 }
 
-export function contestRanklistReorder(data, contest_type, timestamp) {
+export function contestRanklistReorder(data, contest_type) {
   if (contest_type == 'acm') {
     reorderTableInternal(
       data,
-      timestamp,
       {solved: 0, tot_penalty: 0, last_solved: -1},
       acmCellText,
       acmRowSummary
@@ -115,7 +107,6 @@ export function contestRanklistReorder(data, contest_type, timestamp) {
   } else {
     reorderTableInternal(
       data,
-      timestamp,
       {score: 0.0},
       ioiCellText,
       ioiRowSummary

@@ -62,7 +62,14 @@
 </div>
 
 <script>
+contestDashboardRefresh();
+
 var data = <%= raw(@data.to_json) %>;
-var contest_type = <%= raw(@contest.contest_type.to_json) %>;
-initContestRanklist(data, contest_type);
+
+<% if @contest.type_acm? %>
+contestRanklistReorder(data, 'acm');
+<% else %>
+contestRanklistReorder(data, 'ioi');
+<% end %>
+
 </script>
