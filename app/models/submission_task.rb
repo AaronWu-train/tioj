@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: submission_testdata_results
+# Table name: submission_tasks
 #
 #  id            :bigint           not null, primary key
 #  submission_id :bigint
@@ -17,24 +17,12 @@
 #
 # Indexes
 #
-#  index_submission_testdata_results_on_submission_id               (submission_id)
-#  index_submission_testdata_results_on_submission_id_and_position  (submission_id,position) UNIQUE
+#  index_submission_tasks_on_submission_id               (submission_id)
+#  index_submission_tasks_on_submission_id_and_position  (submission_id,position) UNIQUE
 #
 
-ac_1:
- submission: ac
- position: 0
- result: AC
- time: 1
- vss: 2080
- rss: 1000
- score: 100
+class SubmissionTask < ApplicationRecord
+  belongs_to :submission
 
-ac_2:
- submission: ac
- position: 1
- result: AC
- time: 2
- vss: 2000
- rss: 1040
- score: 100
+  validates_length_of :message, maximum: 32768
+end

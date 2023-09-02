@@ -36,6 +36,7 @@
 #  fk_rails_...  (code_content_id => code_contents.id)
 #  fk_rails_...  (compiler_id => compilers.id)
 #
+
 require 'test_helper'
 
 class SubmissionTest < ActiveSupport::TestCase

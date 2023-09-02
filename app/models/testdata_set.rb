@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: subtasks
+# Table name: testdata_sets
 #
 #  id          :bigint           not null, primary key
 #  problem_id  :bigint
@@ -12,10 +12,10 @@
 #
 # Indexes
 #
-#  index_subtasks_on_problem_id  (problem_id)
+#  index_testdata_sets_on_problem_id  (problem_id)
 #
 
-class Subtask < ApplicationRecord
+class TestdataSet < ApplicationRecord
   belongs_to :problem
 
   def self.td_list_str_to_arr(str, sz)
