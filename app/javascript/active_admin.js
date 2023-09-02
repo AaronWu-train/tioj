@@ -18,6 +18,5 @@ import 'jquery-ui/ui/widgets/resizable';
 import 'jquery-ui/ui/widgets/dialog';
 import 'jquery-ui/ui/widgets/tabs';
 import 'jquery-ui/ui/widgets/sortable';
-import 'jquery-ui/ui/widgets/datepicker';
 
-import '@activeadmin/activeadmin/src/base';
+import '@activeadmin/activeadmin';
