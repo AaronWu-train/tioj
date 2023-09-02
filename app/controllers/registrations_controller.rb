@@ -10,8 +10,8 @@ class RegistrationsController < Devise::RegistrationsController
 
   def create
     super
-    resource.generate_random_avatar
-    resource.save # errors would have already happened and rendered in super
+    resource.remote_avatar_url = "http://avatar.3sd.me/100"
+    resource.save
   end
 
   def update

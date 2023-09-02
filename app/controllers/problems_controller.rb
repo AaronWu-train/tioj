@@ -1,7 +1,7 @@
 class ProblemsController < ApplicationController
-  before_action :authenticate_user_and_running_if_single_contest!, only: [:show]
   before_action :authenticate_admin!, only: [:new, :create, :edit, :update, :destroy]
-  before_action :set_problem, only: [:show, :edit, :update, :destroy, :ranklist, :ranklist_old, :rejudge]
+  before_action :set_problem, only: [:show, :edit, :update, :destroy, :ranklist, :ranklist_old]
+  before_action :set_contest, only: [:show]
   before_action :set_testdata, only: [:show]
   before_action :set_compiler, only: [:new, :edit]
   before_action :reduce_list, only: [:create, :update]
@@ -11,14 +11,14 @@ class ProblemsController < ApplicationController
   def ranklist
     # avoid additional COUNT(*) query by to_a
     @submissions = (@problem.submissions.where(contest_id: nil, result: 'AC')
-        .order(score: :desc, total_time: :asc, total_memory: :asc, code_length: :asc, id: :asc)
+        .order(score: :desc, total_time: :asc, total_memory: :asc).order("LENGTH(code) ASC").order(id: :asc)
         .includes(:compiler).preload(:user)).to_a
     @ranklist_old = false
   end
 
   def ranklist_old
     @submissions = (@problem.submissions.joins(:old_submission).where(old_submission: {result: 'AC'})
-        .order("old_submission.score DESC, old_submission.total_time ASC, old_submission.total_memory ASC").order(code_length: :asc, id: :asc)
+        .order("old_submission.score DESC, old_submission.total_time ASC, old_submission.total_memory ASC, LENGTH(code) ASC").order(id: :asc)
         .includes(:old_submission, :compiler).preload(:user)).to_a
     @ranklist_old = true
     render :ranklist
@@ -26,23 +26,14 @@ class ProblemsController < ApplicationController
 
   def delete_submissions
     Submission.where(problem_id: params[:id]).destroy_all
-    ContestProblemJoint.where(problem_id: params[:id]).each do |x|
-      helpers.notify_contest_channel x.contest_id
-    end
     redirect_back fallback_location: root_path
   end
 
   def rejudge
     subs = Submission.where(problem_id: params[:id])
-    sub_ids = subs.pluck(:id)
-    SubmissionTestdataResult.where(submission_id: sub_ids).delete_all
-    subtask_results = SubmissionSubtaskResult.where(submission_id: sub_ids)
-    subs.update_all(result: "queued", score: 0, total_time: nil, total_memory: nil, message: nil)
-    subtask_results.update_all(result: subs.first.calc_subtask_result) if subs.first
+    subs.update_all(:result => "queued", :score => 0, :total_time => nil, :total_memory => nil, :message => nil)
+    SubmissionTask.where(submission_id: subs.map(&:id)).delete_all
     ActionCable.server.broadcast('fetch', {type: 'notify', action: 'problem_rejudge', problem_id: params[:problem_id].to_i})
-    ContestProblemJoint.where(problem_id: params[:id]).each do |x|
-      helpers.notify_contest_channel x.contest_id
-    end
     redirect_back fallback_location: root_path
   end
 
@@ -76,7 +67,7 @@ class ProblemsController < ApplicationController
       "BIT_OR(s.user_id = %d) cur_user_tried" % query_user_id,
     ]
     @attr_map = (Problem.select(*attributes)
-        .where(id: problem_ids)
+        .where(:id => problem_ids)
         .joins("LEFT JOIN submissions s ON s.problem_id = problems.id AND s.contest_id IS NULL")
         .group(:id)
         .index_by(&:id))
@@ -84,6 +75,7 @@ class ProblemsController < ApplicationController
 
   def show
     @tdlist = inverse_td_list(@problem)
+    #@contest_id = params[:contest_id]
   end
 
   def new
@@ -119,11 +111,11 @@ class ProblemsController < ApplicationController
     @ban_compiler_ids = params[:problem][:compiler_ids].map(&:to_i).to_set
     respond_to do |format|
       @problem.attributes = check_params()
-      pre_ids = @problem.subtasks.collect(&:id)
-      changed = @problem.subtasks.any? {|x| x.score_changed? || x.td_list_changed?}
+      pre_ids = @problem.testdata_sets.collect(&:id)
+      changed = @problem.testdata_sets.any? {|x| x.score_changed? || x.td_list_changed?}
       changed ||= @problem.score_precision_changed?
       if @problem.save
-        changed ||= pre_ids.sort != @problem.subtasks.collect(&:id).sort
+        changed ||= pre_ids.sort != @problem.testdata_sets.collect(&:id).sort
         if changed
           recalc_score
         end
@@ -137,8 +129,13 @@ class ProblemsController < ApplicationController
   end
 
   def destroy
+    redirect_to action:'index'
+    return
+    # 'Deletion of problem may cause unwanted paginate behavior.'
+
+    #@problem.destroy
     respond_to do |format|
-      format.html { redirect_to problems_url, alert: "Deletion of problem is disabled since it will cause unwanted paginate behavior." }
+      format.html { redirect_to problems_url, notice: 'Deletion of problem may cause unwanted paginate behavior.' }
       format.json { head :no_content }
     end
   end
@@ -147,7 +144,10 @@ class ProblemsController < ApplicationController
 
   def set_problem
     @problem = Problem.find(params[:id])
-    raise_not_found if @contest && !@problem.in?(@contest.problems)
+  end
+
+  def set_contest
+    @contest = Contest.find(params[:contest_id]) if not params[:contest_id].blank?
   end
 
   def set_testdata
@@ -162,9 +162,9 @@ class ProblemsController < ApplicationController
   end
 
   def reduce_list
-    if problem_params[:subtasks_attributes]
-      problem_params[:subtasks_attributes].each do |x, y|
-        params[:problem][:subtasks_attributes][x][:td_list] = \
+    if problem_params[:testdata_sets_attributes]
+      problem_params[:testdata_sets_attributes].each do |x, y|
+        params[:problem][:testdata_sets_attributes][x][:td_list] = \
             reduce_td_list(y[:td_list], @problem ? @problem.testdata.count : 0)
       end
     end
@@ -175,34 +175,34 @@ class ProblemsController < ApplicationController
   end
 
   def recalc_score
-    num_tds = @problem.testdata.count
-    subtasks = @problem.subtasks
-    contests_map = @problem.contests.all.index_by(&:id)
-    @problem.submissions.includes(:submission_testdata_results).find_in_batches(batch_size: 1024) do |batch|
-      data = batch.map do |sub|
-        {
-          submission_id: sub.id,
-          result: sub.calc_subtask_result([num_tds, subtasks, @problem, contests_map[sub.contest_id]]),
-        }
-      end
-      sub_data = data.map do |item|
-        {
-          id: item[:submission_id],
-          score: item[:result].map{|x| x[:score]}.sum.to_s,
-          compiler_id: 0,
-          code_content_id: 0,
-        }
-      end
-      Submission.import(sub_data, on_duplicate_key_update: [:score], validate: false, timestamps: false)
-      SubmissionSubtaskResult.import(data, on_duplicate_key_update: [:result], validate: false)
+    num_tasks = @problem.testdata.count
+    tdset_map = @problem.testdata_sets.map{|s| [s.td_list_arr(num_tasks), s.score]}
+    @problem.submissions.select(:id).each_slice(256) do |s|
+      ids = s.map(&:id).to_a
+      arr = SubmissionTask.where(:submission_id => ids).
+          select(:submission_id, :position, :score).group_by(&:submission_id).map{ |x, y|
+        td_map = y.map{|t| [t.position, t.score]}.to_h
+        score = tdset_map.map{|td, td_score|
+          ((td.size > 0 ? td_map.values_at(*td).map{|x| x ? x : 0}.min : 100) * td_score / 100).round(@problem.score_precision)
+        }.sum
+        max_score = BigDecimal('1e+12') - 1
+        score = score.clamp(-max_score, max_score).round(6)
+        # compiler_id is only there to prevent SQL error; it will not be used
+        {id: x, score: score.to_s, compiler_id: 0}
+      }
+      Submission.import(arr, on_duplicate_key_update: [:score], validate: false, timestamps: false)
     end
   end
 
   def check_visibility!
-    return if effective_admin?
-    raise_not_found if @problem.visible_invisible?
-    if @problem.visible_contest?
-      raise_not_found unless @contest&.is_started? && @contest.problems.exists?(@problem.id)
+    unless current_user&.admin
+      if @problem.visible_contest?
+        if params[:contest_id].blank? or not (@contest.problem_ids.include?(@problem.id) and Time.now >= @contest.start_time and Time.now <= @contest.end_time)
+          redirect_back fallback_location: root_path, :notice => 'Insufficient User Permissions.'
+        end
+      elsif @problem.visible_invisible?
+        redirect_back fallback_location: root_path, :notice => 'Insufficient User Permissions.'
+      end
     end
   end
 
@@ -240,7 +240,6 @@ class ProblemsController < ApplicationController
       :num_stages,
       :specjudge_type,
       :specjudge_compiler_id,
-      :specjudge_compile_args,
       :judge_between_stages,
       :default_scoring_args,
       :interlib_type,
@@ -260,7 +259,7 @@ class ProblemsController < ApplicationController
         :_destroy
       ],
       compiler_ids: [],
-      subtasks_attributes:
+      testdata_sets_attributes:
       [
         :id,
         :td_list,

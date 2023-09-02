@@ -1,10 +1,10 @@
 <% if errors.any? %>
-  <% alert_tag class: 'alert-danger', dismissible: false do %>
+  <div id="error_explanation" class="alert alert-danger" role="alert">
     <strong><%= pluralize(errors.count, "error") %> prohibited this <%= item %> from being saved:</strong>
     <ul>
       <% errors.full_messages.each do |msg| %>
         <li><%= msg %></li>
       <% end %>
     </ul>
-  <% end %>
+  </div>
 <% end %>
