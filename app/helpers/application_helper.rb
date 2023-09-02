@@ -105,8 +105,4 @@ module ApplicationHelper
     @page_title = "#{@page_title} | #{site_name}"
     content_for :title, @page_title
   end
-
-  def to_us(x)
-    return x.to_i * 1000000 + x.usec
-  end
 end

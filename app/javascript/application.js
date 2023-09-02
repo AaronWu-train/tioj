@@ -12,7 +12,6 @@ import './vendor/bootstrap-switch'
 import './vendor/flatui-checkbox';
 
 // JQuery components
-import './helpers/jquery-ui-slider-import';
 import 'jquery-placeholder';
 import './vendor/jquery.tagsinput';
 import './vendor/jquery_nested_form';
@@ -39,6 +38,6 @@ window.buttonCheckboxSetup = buttonCheckboxSetup
 
 // pages
 import { initContestRanklist } from './pages/contests/main';
-import { initSubmissionCable } from './pages/submissions/init_cable';
+import { initSubmissionCable } from './pages/submissions/main';
 window.initContestRanklist = initContestRanklist
 window.initSubmissionCable = initSubmissionCable

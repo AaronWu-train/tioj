@@ -25,10 +25,6 @@
   </div>
 </div>
 
-<div>
-  <p class="text-center" style="margin-bottom: 0">Display time: <span id="ranklist_time">Current status</span></p>
-  <div id="ranklist_time_slider"></div>
-</div>
 
 <table class="table table-hover">
   <thead>
@@ -67,5 +63,6 @@
 
 <script>
 var data = <%= raw(@data.to_json) %>;
-initContestRanklist(data);
+var contest_type = <%= raw(@contest.contest_type.to_json) %>;
+initContestRanklist(data, contest_type);
 </script>
