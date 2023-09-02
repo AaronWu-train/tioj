@@ -18,9 +18,12 @@
 
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-c99:
-  name: c99
-  description: c99Description
-  format_type: c
-  extension: .c
-  order: 1
+#one:
+#  name: MyString
+#  description: MyString
+#  format_type: MyString
+#
+#two:
+#  name: MyString
+#  description: MyString
+#  format_type: MyString
