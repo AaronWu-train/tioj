@@ -33,7 +33,8 @@ class ContestsController < ApplicationController
     else
       c_submissions = @contest.submissions
     end
-    c_submissions = c_submissions.includes(:submission_subtask_result) if @contest.type_ioi_new?
+    # TODO: Too slow on new IOI style
+    c_submissions = c_submissions.includes(:submission_testdata_results).includes(problem: [:subtasks, :testdata]) if @contest.type_ioi_new?
 
     freeze_start = (
         (current_user&.admin? && !params[:with_freeze]) || self_only ?
