@@ -31,7 +31,7 @@ services:
     networks:
       - app
     ports:
-            - "0.0.0.0:4000:4000"
+            - "0.0.0.0:8889:4000"
     logging: *default-logging
   db:
     image: mysql:8.0
@@ -46,7 +46,7 @@ services:
   judge:
     build: https://github.com/TIOJ-INFOR-Online-Judge/tioj-judge.git#ddb2f430eb7b6a4561ed23c1ef2ad94fcafc5b22
     environment:
-      TIOJ_URL: "http://localhost:4000"
+      TIOJ_URL: "http://localhost:8889"
       TIOJ_KEY: $FETCH_KEY
     volumes:
       - /srv/tioj/judge-td-pool:/var/lib/tioj-judge/td-pool
