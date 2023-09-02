@@ -18,6 +18,7 @@ ENV TIOJ_KEY=$TIOJ_KEY
 
 COPY Gemfile Gemfile.lock package.json yarn.lock /tioj/
 WORKDIR /tioj
+RUN gem install bundler:2.3.17
 RUN MAKEFLAGS='-j2' bundle install
 RUN yarn install --frozen-lockfile
 
